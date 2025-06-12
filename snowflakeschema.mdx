@@ -1,0 +1,56 @@
+rollup
+How can we analyze the total study hours by aggregating data across different challenges and degree programs?
+SELECT 
+  [Measures].[Total Study Hours] ON COLUMNS,
+  NONEMPTY(
+    CROSSJOIN(
+      EXCEPT([Challenges Dim].[Challenge Id].MEMBERS, {[Challenges Dim].[Challenge Id].[All]}),
+      EXCEPT([Student Dim].[Degree Program].MEMBERS, {[Student Dim].[Degree Program].[All]})
+    )
+  ) ON ROWS
+FROM [snowflake]
+
+drill down operations
+How can we examine exam scores in more detail by breaking them down across years, months, and learning platforms?
+SELECT 
+  [Measures].[Exam Score] ON COLUMNS,
+  NONEMPTY(
+    CROSSJOIN(
+      EXCEPT([Time Dim].[Year].MEMBERS, {[Time Dim].[Year].[All]}), 
+      EXCEPT([Time Dim].[Month].MEMBERS, {[Time Dim].[Month].[All]}), 
+      EXCEPT([Platform Dim].[Platform Name].MEMBERS, {[Platform Dim].[Platform Name].[All]})
+    )
+  ) ON ROWS
+FROM [snowflake]
+
+slicing
+ How can we retrieve the total study hours for different learning platforms while focusing only on the year 2024?
+SELECT 
+  [Measures].[Total Study Hours] ON COLUMNS,  
+  [Platform Dim].[Platform Name].MEMBERS ON ROWS  
+FROM [snowflake]  
+WHERE ([Time Dim].[Year].[2024])  
+
+dice:
+How can we analyze exam scores based on different learning platforms and the benefits they provide, while considering only third-year students?
+SELECT 
+  [Measures].[Exam Score] ON COLUMNS,
+  NONEMPTY(
+    CROSSJOIN(
+      EXCEPT([Platform Dim].[Platform Name].MEMBERS, {[Platform Dim].[Platform Name].[All]}),
+      EXCEPT([Benefits Dim].[Benefit Description].MEMBERS, {[Benefits Dim].[Benefit Description].[All]})
+    ), [Measures].[Exam Score]  -- Ensures only meaningful data
+  ) ON ROWS
+FROM [snowflake]
+WHERE ([Student Dim].[Year Of Study].[3])
+
+pivot
+How can we compare challenges based on different days of the week?
+SELECT 
+  NONEMPTY(
+    EXCEPT([Time Dim].[Day Of Week].MEMBERS, {[Time Dim].[Day Of Week].[All]})
+  ) ON COLUMNS,
+  NONEMPTY(
+    EXCEPT([Challenges Dim].[Challenge Description].MEMBERS, {[Challenges Dim].[Challenge Description].[All]})
+  ) ON ROWS
+FROM [snowflake]

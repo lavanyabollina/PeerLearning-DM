@@ -1,0 +1,59 @@
+rollup
+How can we analyze overall study performance by aggregating total study hours and exam scores across different years and degree programs?
+SELECT 
+  {[Measures].[Exam Score], [Measures].[Total Study Hours]} ON COLUMNS,
+  NONEMPTY(
+    CROSSJOIN(
+      EXCEPT([Time Dim].[Year].MEMBERS, {[Time Dim].[Year].[All]}),
+      EXCEPT([Student Dim].[Degree Program].MEMBERS, {[Student Dim].[Degree Program].[All]})
+    )
+  ) ON ROWS
+FROM [factcon]
+
+drilldown
+🔹 How can we retrieve a detailed breakdown of exam scores and study hours by drilling down from years to months to full dates while also including student degree programs and individual student names?
+SELECT 
+  {[Measures].[Exam Score], [Measures].[Study Hours]} ON COLUMNS,
+  NONEMPTY(
+    CROSSJOIN(
+      EXCEPT([Time Dim].[Year].MEMBERS, {[Time Dim].[Year].[All]}),
+      EXCEPT([Time Dim].[Month].MEMBERS, {[Time Dim].[Month].[All]}),
+      EXCEPT([Time Dim].[Full Date].MEMBERS, {[Time Dim].[Full Date].[All]}),
+      EXCEPT([Student Dim].[Degree Program].MEMBERS, {[Student Dim].[Degree Program].[All]}),
+      EXCEPT([Student Dim].[Full Name].MEMBERS, {[Student Dim].[Full Name].[All]})
+    ), 
+  [Measures].[Exam Score]  -- Ensuring only meaningful data is retrieved
+  ) ON ROWS
+FROM [factcon]
+
+slice
+How can we analyze total study hours while focusing only on male students in the year 2024, broken down by different study methods?
+SELECT 
+  [Measures].[Total Study Hours] ON COLUMNS,
+  EXCEPT([Method Dim].[Method Name].MEMBERS, {[Method Dim].[Method Name].[All]}) ON ROWS
+FROM [factcon]
+WHERE ([Time Dim].[Year].[2024], [Student Dim].[Gender].[Male])
+
+dice
+How can we analyze exam scores for third-year students while filtering for specific learning platforms and benefits received?
+SELECT 
+  [Measures].[Exam Score] ON COLUMNS,
+  NONEMPTY(
+    CROSSJOIN(
+      EXCEPT([Platform Dim].[Platform Name].MEMBERS, {[Platform Dim].[Platform Name].[All]}),
+      EXCEPT([Benefits Dim].[Benefit Description].MEMBERS, {[Benefits Dim].[Benefit Description].[All]})
+    )
+  ) ON ROWS
+FROM [factcon]
+WHERE ([Student Dim].[Year Of Study].[3])
+
+pivot
+How can we analyze student challenges across different days of the week to identify patterns in study difficulties?
+SELECT 
+  NONEMPTY(
+    EXCEPT([Time Dim].[Day Of Week].MEMBERS, {[Time Dim].[Day Of Week].[All]})  
+  ) ON COLUMNS,  
+  NONEMPTY(
+    EXCEPT([Challenges Dim].[Challenge Description].MEMBERS, {[Challenges Dim].[Challenge Description].[All]})  
+  ) ON ROWS  
+FROM [factcon]

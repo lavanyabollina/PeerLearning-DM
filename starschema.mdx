@@ -1,0 +1,59 @@
+
+⭐ Rollup Operation
+How can we analyze the total study hours by aggregating data across different years and years of study?
+SELECT 
+  [Measures].[Study Hours] ON COLUMNS,
+  NONEMPTY(
+    CROSSJOIN(
+      EXCEPT([Time Dim].[Year].MEMBERS, {[Time Dim].[Year].[All], [Time Dim].[Year].[Unknown]}),
+      EXCEPT([Student Dim 2].[Year Of Study].MEMBERS, {[Student Dim 2].[Year Of Study].[All], [Student Dim 2].[Year Of Study].[Unknown]})
+    )
+  ) ON ROWS
+FROM [starschema]
+
+🔎 Drill-Down Operation
+ How can we break down study hours further by showing detailed data for each month within a given year
+SELECT 
+  [Measures].[Study Hours] ON COLUMNS,
+  CROSSJOIN(
+    EXCEPT([Time Dim].[Year].MEMBERS, {[Time Dim].[Year].[All], [Time Dim].[Year].[Unknown]}),
+EXCEPT([Time Dim].[Month].MEMBERS, {[Time Dim].[Month].[All], [Time Dim].[Month].[Unknown]})
+  ) ON ROWS
+FROM [starschema]
+
+ 🔪 Slicing Operation
+How can we retrieve the total study hours for students in their third year while focusing on different study methods?
+SELECT 
+  [Measures].[Study Hours] ON COLUMNS,
+  NONEMPTY(
+    EXCEPT([Method Dim].[Method Name].MEMBERS, {[Method Dim].[Method Name].[All], [Method Dim].[Method Name].[Unknown]})
+  ) ON ROWS
+FROM [starschema]
+WHERE ([Student Dim 2].[Year Of Study].[3])
+
+🎲 Dice Operation
+How can we analyze study hours by different study methods and years while considering only third-year students?
+SELECT 
+  [Measures].[Study Hours] ON COLUMNS,
+  NONEMPTY(
+    CROSSJOIN(
+      EXCEPT([Method Dim].[Method Name].MEMBERS, {[Method Dim].[Method Name].[All], [Method Dim].[Method Name].[Unknown]}),
+      EXCEPT([Time Dim].[Year].MEMBERS, {[Time Dim].[Year].[All], [Time Dim].[Year].[Unknown]})
+    )
+  ) ON ROWS
+FROM [starschema]
+WHERE ([Student Dim 2].[Year Of Study].[3])
+
+ 🔄 Pivot Operation
+ How can we compare the total study sessions across different days of the week and study methods?
+SELECT 
+  NONEMPTY(
+    EXCEPT([Time Dim].[Day Of Week].MEMBERS, {[Time Dim].[Day Of Week].[All]}), 
+    [Measures].[Total Sessions]
+  ) ON COLUMNS,
+  NONEMPTY(
+    EXCEPT([Method Dim].[Method Name].MEMBERS, {[Method Dim].[Method Name].[All]}), 
+    [Measures].[Total Sessions]
+  ) ON ROWS
+FROM [starschema]
+
